@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, FileText, User, Briefcase, Calendar } from 'lucide-react';
 import { SearchResult } from '../types';
@@ -10,13 +10,14 @@ interface ResultCardProps {
   onClick: (result: SearchResult) => void;
 }
 
-export function ResultCard({ result, index, onClick }: ResultCardProps) {
+export const ResultCard = forwardRef<HTMLDivElement, ResultCardProps>(({ result, index, onClick }, ref) => {
   const isRecord = result.type === 'record' && result.record;
   const highlightedSnippet = highlightSnippet(result.snippet, result.matchedTerms);
   const highlightedName = isRecord ? highlightSnippet(result.record!.fullName, result.matchedTerms) : '';
 
   return (
     <motion.article
+      ref={ref}
       className={`result-card ${isRecord ? 'record-type' : 'page-type'}`}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -75,4 +76,4 @@ export function ResultCard({ result, index, onClick }: ResultCardProps) {
       </div>
     </motion.article>
   );
-}
+});

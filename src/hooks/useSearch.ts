@@ -30,6 +30,11 @@ export function useSearch(indexes: Map<string, BookIndex>, books: Book[]) {
           const item = res.item;
           const book = books.find(b => b.id === item.bookId);
           
+          // For records, use the record's name. For pages, generate from snippet
+          const displayName = item.type === 'record' && item.name 
+            ? item.name 
+            : '';
+          
           return {
             bookId: item.bookId,
             bookTitle: item.bookTitle,

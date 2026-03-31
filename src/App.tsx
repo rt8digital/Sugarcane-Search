@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Loader, AlertTriangle } from 'lucide-react';
+import { Loader, AlertTriangle, Clock, Trash2 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { SearchBar } from './components/SearchBar';
@@ -10,12 +10,14 @@ import { BookFilter } from './components/BookFilter';
 import { BOOKS } from './data/books';
 import { usePdfIndex } from './hooks/usePdfIndex';
 import { useSearch } from './hooks/useSearch';
+import { useSearchHistory } from './hooks/useSearchHistory';
 import { SearchResult } from './types';
 
 export default function App() {
   const { indexes, loading, error, progress } = usePdfIndex(BOOKS);
   const { query, setQuery, results, isSearching, selectedBooks, setSelectedBooks, resultCount } =
     useSearch(indexes, BOOKS);
+  const { history, addToHistory, clearHistory } = useSearchHistory();
 
   const [viewer, setViewer] = useState<SearchResult | null>(null);
 
@@ -32,6 +34,14 @@ export default function App() {
   
   const showEmpty = query.trim().length >= 2 && results.length === 0 && !isSearching && !showInitialLoading;
   const showWelcome = query.trim().length < 2 && !showInitialLoading;
+
+  // Save search to history when results come in
+  const handleSearch = (newQuery: string) => {
+    setQuery(newQuery);
+    if (newQuery.trim().length >= 2) {
+      addToHistory(newQuery);
+    }
+  };
 
   const SkeletonCard = () => (
     <div className="skeleton-card">
@@ -73,7 +83,7 @@ export default function App() {
           <>
             <SearchBar
               query={query}
-              onChange={setQuery}
+              onChange={handleSearch}
               isSearching={isSearching}
               resultCount={resultCount}
               totalIndexed={totalIndexed}
@@ -106,13 +116,32 @@ export default function App() {
               Explore <strong>{totalIndexed.toLocaleString()} pages</strong> of biographical history.
               Search by name, trade, or family lineage to begin.
             </p>
-            <div className="welcome-examples">
-              {['Gandhi', 'Durban attorney', 'cane grower', 'medical', 'Lockhat'].map((ex) => (
-                <button key={ex} className="example-chip" onClick={() => setQuery(ex)}>
-                  {ex}
-                </button>
-              ))}
-            </div>
+            {history.length > 0 ? (
+              <div className="welcome-history">
+                <div className="history-header">
+                  <Clock size={14} />
+                  <span>Recent searches</span>
+                  <button className="history-clear" onClick={clearHistory} title="Clear history">
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+                <div className="welcome-examples">
+                  {history.slice(0, 5).map((term) => (
+                    <button key={term} className="example-chip" onClick={() => handleSearch(term)}>
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="welcome-examples">
+                {['Gandhi', 'Durban attorney', 'cane grower', 'medical', 'Lockhat'].map((ex) => (
+                  <button key={ex} className="example-chip" onClick={() => handleSearch(ex)}>
+                    {ex}
+                  </button>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
 

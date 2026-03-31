@@ -1,13 +1,13 @@
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, Quote } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function AboutPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const goSearch = () => {
-    setSearchParams({});
+    navigate('/');
   };
 
   return (
