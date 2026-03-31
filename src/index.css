@@ -399,6 +399,7 @@ body {
   border-radius: var(--radius-xl);
   width: 100%;
   max-width: 90vw;
+  height: calc(100vh - 4rem);
   max-height: 90vh;
   margin: auto;
   box-shadow: var(--shadow-lg);
@@ -446,13 +447,15 @@ body {
 .pdf-close-btn { margin-left: 6px; }
 .pdf-scale-label { font-size: .75rem; color: #c9a070; min-width: 36px; text-align: center; }
 .pdf-canvas-area {
-  flex: 1;
+  flex: 1 1 auto;
   overflow: auto;
   background: #555;
   position: relative;
-  display: block;
+  display: flex;
+  justify-content: center;
   padding: 1rem;
-  min-height: 300px;
+  min-height: 200px;
+  max-height: calc(100% - 120px);
 }
 .pdf-canvas-wrap {
   position: relative;
@@ -917,9 +920,12 @@ body {
   /* PDF Viewer Mobile */
   .pdf-overlay {
     padding: 0.5rem;
+    align-items: center;
   }
   .pdf-panel {
     max-width: 98vw;
+    width: 100%;
+    height: calc(100vh - 2rem);
     max-height: 95vh;
     border-radius: var(--radius-md);
   }
@@ -970,8 +976,11 @@ body {
 @media (max-width: 480px) {
   .pdf-overlay {
     padding: 0.25rem;
+    align-items: center;
   }
   .pdf-panel {
+    width: 100%;
+    height: calc(100vh - 1rem);
     max-height: 98vh;
   }
   .pdf-controls {
