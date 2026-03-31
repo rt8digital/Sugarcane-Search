@@ -92,9 +92,22 @@ export function PdfViewer({ pdfPath, bookTitle, initialPage, highlights, records
   const fitToWidth = useCallback(() => {
     if (!containerRef.current) return;
     const padding = 40;
-    const width = containerRef.current.clientWidth - padding;
-    setScale(width / 600);
+    const maxWidth = window.innerWidth * 0.95 - padding;
+    const maxHeight = window.innerHeight * 0.85;
+    const widthScale = maxWidth / 600;
+    const heightScale = maxHeight / 800;
+    setScale(Math.min(widthScale, heightScale, 2));
   }, []);
+
+  useEffect(() => {
+    const handleResize = () => fitToWidth();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [fitToWidth]);
+
+  useEffect(() => {
+    setTimeout(fitToWidth, 100);
+  }, [pdf, fitToWidth]);
 
   const buildTextIndex = useCallback(async () => {
     if (!pdf) return;

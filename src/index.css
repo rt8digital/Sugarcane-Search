@@ -43,6 +43,31 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (max-width: 600px) {
+  :root {
+    --radius-sm: 4px;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+  }
+  body {
+    font-size: 14px;
+  }
+  .main-content {
+    padding: 0 0.8rem 4rem;
+  }
+}
+
+@media (max-width: 400px) {
+  body {
+    font-size: 13px;
+  }
+  .main-content {
+    padding: 0 0.5rem 3rem;
+  }
 }
 
 /* ── Layout ───────────────────────────────────── */
@@ -373,13 +398,13 @@ body {
   background: var(--surface-raised);
   border-radius: var(--radius-xl);
   width: 100%;
-  max-width: 860px;
+  max-width: 90vw;
+  max-height: 90vh;
   margin: auto;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  max-height: 95vh;
 }
 .pdf-topbar {
   display: flex;
@@ -887,5 +912,82 @@ body {
   }
   .book-select {
     width: 100%;
+  }
+  
+  /* PDF Viewer Mobile */
+  .pdf-overlay {
+    padding: 0.5rem;
+  }
+  .pdf-panel {
+    max-width: 98vw;
+    max-height: 95vh;
+    border-radius: var(--radius-md);
+  }
+  .pdf-topbar {
+    flex-direction: column;
+    gap: 8px;
+    padding: 0.6rem 0.8rem;
+  }
+  .pdf-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+  .pdf-search-group {
+    width: 100%;
+    justify-content: center;
+  }
+  .pdf-search-input {
+    width: 100px;
+    min-width: 80px;
+  }
+  .pdf-zoom-group, .pdf-nav-group {
+    padding: 2px;
+  }
+  .pdf-canvas-area {
+    padding: 0.5rem;
+    min-height: 200px;
+  }
+  .pdf-pagebar-refined {
+    flex-direction: column;
+    gap: 8px;
+    padding: 0.6rem;
+    text-align: center;
+  }
+  .pdf-book-title {
+    font-size: 0.85rem;
+  }
+  .pdf-ctrl-btn {
+    width: 28px;
+    height: 28px;
+  }
+  .pdf-close-btn-round {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pdf-overlay {
+    padding: 0.25rem;
+  }
+  .pdf-panel {
+    max-height: 98vh;
+  }
+  .pdf-controls {
+    gap: 2px;
+  }
+  .pdf-ctrl-btn {
+    width: 26px;
+    height: 26px;
+  }
+  .pdf-search-input {
+    width: 70px;
+    min-width: 60px;
+    font-size: 0.75rem;
+  }
+  .pdf-zoom-val, .pdf-search-count {
+    font-size: 0.65rem;
+    min-width: 30px;
   }
 }
