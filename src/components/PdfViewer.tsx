@@ -29,10 +29,11 @@ interface PdfViewerProps {
   initialPage: number;
   highlights: string[];
   records?: BiographicalRecord[];
+  matchPositions?: { start: number; end: number }[];
   onClose: () => void;
 }
 
-export function PdfViewer({ pdfPath, bookTitle, initialPage, highlights, records, onClose }: PdfViewerProps) {
+export function PdfViewer({ pdfPath, bookTitle, initialPage, highlights, records, matchPositions, onClose }: PdfViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<RenderTask | null>(null);
@@ -278,6 +279,55 @@ export function PdfViewer({ pdfPath, bookTitle, initialPage, highlights, records
   useEffect(() => {
     setCurrentPage(initialPage);
   }, [initialPage]);
+
+  // Scroll to exact match position when page loads
+  useEffect(() => {
+    if (!pdf || !matchPositions || matchPositions.length === 0 || !containerRef.current) return;
+    
+    const scrollToMatch = async () => {
+      const page = await pdf.getPage(currentPage);
+      const textContent = await page.getTextContent();
+      const viewport = page.getViewport({ scale });
+      
+      // Build text with positions
+      let fullText = '';
+      const itemPositions: { str: string; transform: number[]; width: number }[] = [];
+      
+      for (const item of textContent.items as unknown as TextItem[]) {
+        if (item.str) {
+          itemPositions.push({
+            str: item.str,
+            transform: item.transform,
+            width: item.width
+          });
+        }
+      }
+      
+      // Find matches and get their Y position
+      const termsLower = highlights.map(t => t.toLowerCase().trim()).filter(Boolean);
+      
+      for (const item of itemPositions) {
+        const itemText = item.str.toLowerCase();
+        for (const term of termsLower) {
+          if (itemText.includes(term)) {
+            const tx = Util.transform(viewport.transform, item.transform);
+            const fontHeight = Math.abs(tx[3]);
+            
+            // Scroll to this position
+            containerRef.current?.scrollTo({
+              top: Math.max(0, tx[5] - 150),
+              behavior: 'smooth'
+            });
+            return;
+          }
+        }
+      }
+    };
+    
+    // Delay to allow page render
+    const timer = setTimeout(scrollToMatch, 300);
+    return () => clearTimeout(timer);
+  }, [pdf, currentPage, matchPositions, highlights, scale]);
 
   return (
     <AnimatePresence>

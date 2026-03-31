@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Loader, AlertTriangle, Clock, Trash2 } from 'lucide-react';
+import { Loader, AlertTriangle, Clock, Trash2, BookMarked } from 'lucide-react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { SearchBar } from './components/SearchBar';
@@ -11,7 +11,8 @@ import { BOOKS } from './data/books';
 import { usePdfIndex } from './hooks/usePdfIndex';
 import { useSearch } from './hooks/useSearch';
 import { useSearchHistory } from './hooks/useSearchHistory';
-import { SearchResult } from './types';
+import { SearchResult, GroupedResults } from './types';
+import { groupResultsByBookAndPage } from './utils/search';
 
 export default function App() {
   const { indexes, loading, error, progress } = usePdfIndex(BOOKS);
@@ -28,6 +29,10 @@ export default function App() {
   }, [indexes]);
 
   const loadedBookIds = useMemo(() => [...indexes.keys()], [indexes]);
+
+  const groupedResults = useMemo(() => {
+    return groupResultsByBookAndPage(results, BOOKS);
+  }, [results]);
 
   const showInitialLoading = loading && indexes.size === 0;
   const showIncrementalLoading = loading && indexes.size > 0;
@@ -155,13 +160,30 @@ export default function App() {
             </>
           ) : (
             <AnimatePresence mode="popLayout">
-              {results.map((r, i) => (
-                <ResultCard
-                  key={`${r.bookId}-${r.page}-${r.type}-${r.record?.fullName || ''}`}
-                  result={r}
-                  index={i}
-                  onClick={setViewer}
-                />
+              {groupedResults.map((bookGroup, bookIdx) => (
+                <div key={bookGroup.bookId} className="results-group">
+                  <div className="results-group-header">
+                    <BookMarked size={16} />
+                    <span className="results-group-title">{bookGroup.bookTitle}</span>
+                    <span className="results-group-year">{bookGroup.bookYear}</span>
+                  </div>
+                  {bookGroup.pages.map((pageGroup) => (
+                    <div key={pageGroup.page} className="results-page-group">
+                      <div className="results-page-header">
+                        <span className="results-page-label">Page {pageGroup.page}</span>
+                        <span className="results-page-count">{pageGroup.results.length} matches</span>
+                      </div>
+                      {pageGroup.results.map((r, i) => (
+                        <ResultCard
+                          key={`${r.bookId}-${r.page}-${r.type}-${r.record?.fullName || ''}`}
+                          result={r}
+                          index={i}
+                          onClick={setViewer}
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
               ))}
             </AnimatePresence>
           )}
@@ -189,6 +211,7 @@ export default function App() {
           bookTitle={viewer.bookTitle}
           initialPage={viewer.page}
           highlights={viewer.matchedTerms}
+          matchPositions={viewer.matchPositions}
           onClose={() => setViewer(null)}
         />
       )}

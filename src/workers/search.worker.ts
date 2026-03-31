@@ -97,15 +97,26 @@ self.onmessage = (e: MessageEvent) => {
     for (const result of allResults) {
       const textLower = result.item.text.toLowerCase();
       
+      // Find all match positions in the text
+      const matchPositions: { start: number; end: number }[] = [];
+      let searchStart = 0;
+      while (true) {
+        const idx = textLower.indexOf(queryLower, searchStart);
+        if (idx === -1) break;
+        matchPositions.push({ start: idx, end: idx + queryLower.length });
+        searchStart = idx + 1;
+        if (matchPositions.length >= 5) break; // Limit positions per page
+      }
+      
       // Check if it's an exact word match (as whole word)
       const exactWordMatch = textLower.includes(queryLower) && 
         (textLower.indexOf(queryLower) === 0 || /\s/.test(textLower[textLower.indexOf(queryLower) - 1])) &&
         (textLower.indexOf(queryLower) + queryLower.length === textLower.length || /\s/.test(textLower[textLower.indexOf(queryLower) + queryLower.length]));
       
       if (exactWordMatch && result.score && result.score < 0.1) {
-        exactMatches.push(result);
+        exactMatches.push({ ...result, matchPositions });
       } else {
-        fuzzyMatches.push(result);
+        fuzzyMatches.push({ ...result, matchPositions });
       }
     }
 

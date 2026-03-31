@@ -46,4 +46,16 @@ export interface SearchResult {
   matchedTerms: string[];
   type?: 'page' | 'record';
   record?: BiographicalRecord;
+  matchPositions?: { start: number; end: number }[];
+}
+
+export interface GroupedResults {
+  bookId: string;
+  bookTitle: string;
+  bookYear: string;
+  pdfPath: string;
+  pages: {
+    page: number;
+    results: SearchResult[];
+  }[];
 }

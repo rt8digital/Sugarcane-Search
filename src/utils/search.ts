@@ -1,4 +1,4 @@
-import { SearchResult } from '../types';
+import { SearchResult, GroupedResults } from '../types';
 
 /**
  * Extracts a readable snippet centred around the best keyword match.
@@ -66,4 +66,44 @@ export function deduplicateResults(results: SearchResult[]): SearchResult[] {
     seen.add(key);
     return true;
   });
+}
+
+/**
+ * Groups search results by book and then by page number.
+ * Returns a structured hierarchy for display.
+ */
+export function groupResultsByBookAndPage(results: SearchResult[], books: { id: string; title: string; year: string; pdfPath: string }[]): GroupedResults[] {
+  const grouped = new Map<string, GroupedResults>();
+  
+  for (const result of results) {
+    const book = books.find(b => b.id === result.bookId);
+    
+    if (!grouped.has(result.bookId)) {
+      grouped.set(result.bookId, {
+        bookId: result.bookId,
+        bookTitle: result.bookTitle || book?.title || 'Unknown',
+        bookYear: result.bookYear || book?.year || '',
+        pdfPath: result.pdfPath || book?.pdfPath || '',
+        pages: []
+      });
+    }
+    
+    const bookGroup = grouped.get(result.bookId)!;
+    
+    // Find or create page group
+    let pageGroup = bookGroup.pages.find(p => p.page === result.page);
+    if (!pageGroup) {
+      pageGroup = { page: result.page, results: [] };
+      bookGroup.pages.push(pageGroup);
+    }
+    
+    pageGroup.results.push(result);
+  }
+  
+  // Sort pages within each book
+  for (const bookGroup of grouped.values()) {
+    bookGroup.pages.sort((a, b) => a.page - b.page);
+  }
+  
+  return Array.from(grouped.values());
 }

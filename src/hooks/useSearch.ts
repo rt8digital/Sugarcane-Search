@@ -45,7 +45,8 @@ export function useSearch(indexes: Map<string, BookIndex>, books: Book[]) {
             snippet: generateSnippet(item.text, query),
             matchedTerms: query.split(/\s+/).filter(Boolean),
             type: item.type,
-            record: item.record
+            record: item.record,
+            matchPositions: res.matchPositions || []
           };
         });
 

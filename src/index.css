@@ -246,6 +246,75 @@ body {
 /* ── Results feed ────────────────────────────── */
 .results-feed { display: flex; flex-direction: column; gap: 14px; margin-top: .8rem; }
 
+/* ── Grouped Results ────────────────────────────── */
+.results-group {
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface);
+}
+.results-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.8rem 1rem;
+  background: linear-gradient(135deg, #2a1200 0%, #3d1800 100%);
+  color: #fdebc8;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.results-group-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+.results-group-year {
+  font-size: 0.8rem;
+  color: #c9a070;
+  margin-left: auto;
+}
+.results-page-group {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+.results-page-group:last-child {
+  border-bottom: none;
+}
+.results-page-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.4rem 0.8rem;
+  background: var(--cream-2);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.5rem;
+}
+.results-page-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.results-page-count {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+/* Mobile responsive for grouped results */
+@media (max-width: 600px) {
+  .results-group-header {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .results-group-title {
+    font-size: 0.9rem;
+  }
+  .results-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
 /* ── Result card ─────────────────────────────── */
 .result-card {
   background: var(--surface-raised);
