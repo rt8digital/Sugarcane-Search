@@ -5,15 +5,22 @@ import { getCache, setCache } from '../utils/db';
 import { parseBiographies } from '../utils/parser';
 
 const { GlobalWorkerOptions, getDocument } = pdfjsLib;
-GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
+GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs`;
 
 export function usePdfIndex(books: Book[]) {
   const [indexes, setIndexes] = useState<Map<string, BookIndex>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [overallProgress, setOverallProgress] = useState(0);
+  const [progress, setProgress] = useState(0);
   
-  const loadingBooks = useRef(new Set<string>());
+  // Track ongoing operations to prevent duplicates
+  const activeJobs = useRef(new Set<string>());
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
 
   useEffect(() => {
     if (!books.length) {
@@ -21,35 +28,33 @@ export function usePdfIndex(books: Book[]) {
       return;
     }
 
-    async function loadBooks() {
+    const processBooks = async () => {
       setLoading(true);
-      const loadedMap = new Map<string, BookIndex>();
+      
+      // Identify books that aren't indexed yet
+      const missingBooks = books.filter(b => !indexes.has(b.id) && !activeJobs.current.has(b.id));
+      
+      if (missingBooks.length === 0) {
+        setLoading(false);
+        return;
+      }
 
-      for (let i = 0; i < books.length; i++) {
-        const book = books[i];
-        if (loadingBooks.current.has(book.id)) continue;
-        loadingBooks.current.add(book.id);
+      for (const book of missingBooks) {
+        if (!isMounted.current) break;
+        activeJobs.current.add(book.id);
 
         try {
+          // 1. Check Cache
           const cached = await getCache<BookIndex>(book.id);
           if (cached) {
-            loadedMap.set(book.id, cached);
-            setIndexes(new Map(loadedMap));
-            setOverallProgress((i + 1) / books.length);
+            if (isMounted.current) {
+              setIndexes(prev => new Map(prev).set(book.id, cached));
+            }
+            activeJobs.current.delete(book.id);
             continue;
           }
 
-          const jsonPath = `/indexes/${book.id}.json`;
-          const resp = await fetch(jsonPath);
-          if (resp.ok) {
-            const index = await resp.json();
-            await setCache(book.id, index);
-            loadedMap.set(book.id, index);
-            setIndexes(new Map(loadedMap));
-            setOverallProgress((i + 1) / books.length);
-            continue;
-          }
-
+          // 2. Fetch PDF & Index
           const pdfResp = await fetch(book.pdfPath);
           if (!pdfResp.ok) throw new Error(`Could not fetch PDF: ${book.pdfPath}`);
           
@@ -59,6 +64,8 @@ export function usePdfIndex(books: Book[]) {
           const pages: PageIndex[] = [];
 
           for (let p = 1; p <= numPages; p++) {
+            if (!isMounted.current) break;
+            
             const page = await doc.getPage(p);
             const content = await page.getTextContent();
             const text = content.items
@@ -68,10 +75,13 @@ export function usePdfIndex(books: Book[]) {
               .trim();
             
             const records: BiographicalRecord[] = parseBiographies(text);
-            
             pages.push({ page: p, text, records });
             
-            setOverallProgress((i + (p / numPages)) / books.length);
+            // Minor progress update within book
+            if (p % 5 === 0 || p === numPages) {
+              const currentTotal = Array.from(indexes.values()).length;
+              setProgress((currentTotal + (p / numPages)) / books.length);
+            }
           }
 
           const bookIndex: BookIndex = {
@@ -82,21 +92,36 @@ export function usePdfIndex(books: Book[]) {
             pages,
           };
 
+          // 3. Persist & Update State
           await setCache(book.id, bookIndex);
           
-          loadedMap.set(book.id, bookIndex);
-          setIndexes(new Map(loadedMap));
+          if (isMounted.current) {
+            setIndexes(prev => new Map(prev).set(book.id, bookIndex));
+          }
 
-        } catch (e) {
-          console.error(`Failed to index ${book.id}:`, e);
+        } catch (err) {
+          console.error(`Error indexing ${book.id}:`, err);
+          if (isMounted.current) {
+            setError(`Failed to index ${book.title}. Heritage records may be incomplete.`);
+          }
+        } finally {
+          activeJobs.current.delete(book.id);
         }
       }
 
-      setLoading(false);
-    }
+      if (isMounted.current) {
+        setLoading(false);
+        setProgress(1);
+      }
+    };
 
-    loadBooks();
-  }, [books]);
+    processBooks();
+  }, [books]); // Re-runs if BOOKS list changes
 
-  return { indexes, loading, error, progress: overallProgress };
+  return { 
+    indexes, 
+    loading: loading || activeJobs.current.size > 0, 
+    error, 
+    progress 
+  };
 }

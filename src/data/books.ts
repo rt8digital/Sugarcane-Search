@@ -1,6 +1,6 @@
 import { Book } from '../types';
 
-const CDN_BASE = 'https://media.githubusercontent.com/media/rt8digital/Sugarcane-Search/main/public/pdfs';
+const CDN_BASE = 'https://media.githubusercontent.com/media/rt8digital/SALT-Search/main/public/pdfs';
 
 export const BOOKS: Book[] = [
   // 1936-37 Edition

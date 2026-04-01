@@ -2,7 +2,7 @@
  * Minimal IndexedDB wrapper for caching BookIndex objects.
  */
 
-const DB_NAME = 'SugarCaneCache';
+const DB_NAME = 'SALTCache';
 const STORE_NAME = 'indices';
 const DB_VERSION = 1;
 

@@ -8,6 +8,10 @@ export interface Book {
   pdfPath: string;
 }
 
+export interface BookWithSubtitle extends Book {
+  subtitle: string;
+}
+
 export interface BiographicalRecord {
   fullName: string;
   profession?: string;
@@ -58,4 +62,11 @@ export interface GroupedResults {
     page: number;
     results: SearchResult[];
   }[];
+}
+
+export type SearchMode = 'index' | 'ocr';
+
+export interface SearchConfig {
+  mode: SearchMode;
+  selectedBookIds: string[];
 }

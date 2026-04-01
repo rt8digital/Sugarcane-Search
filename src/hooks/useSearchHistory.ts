@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const STORAGE_KEY = 'sugarcane-search-history';
+const STORAGE_KEY = 'SALT-search-history';
 const MAX_HISTORY = 10;
 
 export function useSearchHistory() {

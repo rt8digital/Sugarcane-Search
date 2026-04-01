@@ -1,118 +1,87 @@
-# SugarCane Search
+# 🌿 South African Lineage Tracer (SALT)
 
-A high-performance heritage search engine for South Africa's Indian community biographical records. SugarCane provides fast, full-text search across multiple editions of the "Who's Who" directories spanning 1936 to 1972.
+**Modern Heritage Archive Discovery** – A high-performance, modular search engine for South Africa's Indian community biographical records. SALT provides an elegant, scalable interface for traversing history across decades of digitised volumes.
 
-![SugarCane Search](./public/sugarcane.svg)
+![SALT Logo](./public/SALT.svg)
 
-## Features
+---
 
-- **Instant Client-Side Search** - Fuse.js powered fuzzy search with web workers
-- **PDF OCR Integration** - Search through scanned documents with extracted text
-- **IndexedDB Caching** - Persisted indexes for faster subsequent loads
-- **Historical Records** - Biographies, business directories, and family histories
-- **Responsive Design** - Heritage-themed UI with modern UX
+## ✨ Features
 
-## Data Sources
+- **🏆 Heritage Glassmorphism UI** – A premium, state-of-the-art design system featuring depth, vibrant accents, and smooth animations.
+- **🚀 Scalable Virtualization** – Powered by `react-window`, the results feed remains buttery smooth even with thousands of matches across hundreds of volumes.
+- **⚡ Smart Delta Indexing** – Intelligent client-side indexing that only processes new volumes, preserving your local cache (IndexedDB) for near-instant subsequent loads.
+- **🗺️ Narrative Navigation** – Seamless page transitions using `framer-motion` for a cinematic research experience.
+- **🔍 Deep OCR Search** – Full-text fuzzy search across scanned documents with on-the-fly highlighting in a custom high-performance PDF viewer.
 
-| Edition | Years Covered | Parts |
-|---------|--------------|-------|
-| Who's Who | 1936-37 | 4 volumes |
-| South African Indian Who's Who | 1940 | 8 volumes |
-| South African Indian Who's Who | 1960 | 9 volumes |
-| Southern Africa Indian Who's Who | 1971-72 | 11 volumes |
+## 🏗️ Architecture
 
-Original documents courtesy of the [UKZN Gandhi-Luthuli Documentation Centre](https://gldc.ukzn.ac.za).
-
-## Architecture
-
-```
-src/
-├── components/       # React UI components
-│   ├── SearchBar.tsx    # Main search input
-│   ├── ResultCard.tsx   # Search result display
-│   ├── PdfViewer.tsx    # PDF document viewer
-│   ├── BookFilter.tsx   # Source filtering dropdown
-│   ├── AboutPage.tsx    # About & history page
-│   └── Header.tsx       # Navigation header
-├── hooks/            # Custom React hooks
-│   ├── useSearch.ts     # Search logic & web worker
-│   └── usePdfIndex.ts   # PDF indexing & caching
-├── utils/            # Utility functions
-│   ├── parser.ts        # Biographical record parser
-│   ├── search.ts        # Result processing
-│   └── db.ts            # IndexedDB wrapper
-├── workers/          # Web Workers
-│   └── search.worker.ts # Background search processing
-├── data/
-│   └── books.ts         # PDF registry
-└── types/             # TypeScript definitions
-```
-
-### Search Pipeline
-
-1. **PDF Indexing** (`usePdfIndex.ts`)
-   - Checks IndexedDB cache first
-   - Falls back to fetching PDF + extracting text via pdf.js
-   - Parses biographical records from OCR text
-   - Stores compiled index in IndexedDB
-
-2. **Search Execution** (`useSearch.ts`)
-   - Web Worker receives compiled index data
-   - Fuse.js performs fuzzy matching
-   - Results streamed back to main thread
-   - Snippets generated with highlight matched terms
-
-3. **PDF Viewing** (`PdfViewer.tsx`)
-   - On-demand PDF rendering via pdf.js
-   - Page navigation & zoom controls
-   - Highlights search terms on page
-
-## Performance
-
-- **First Load**: PDFs parsed client-side (~30s for full archive)
-- **Subsequent Visits**: IndexedDB cache loads instantly
-- **Pre-generated Indexes**: Run `node scripts/index-pdfs.mjs` to generate JSON indexes for fastest deployment
-
-## Tech Stack
-
-- **React 18** - UI framework
-- **Vite** - Build tool
-- **TypeScript** - Type safety
-- **Fuse.js** - Fuzzy search
-- **pdf.js** - PDF rendering & text extraction
-- **IndexedDB** - Browser caching
-- **Framer Motion** - Animations
-- **React Router** - Navigation
-
-## Getting Started
+The system is built for extreme modularity, allowing new PDF volumes to be dropped into the registry without re-indexing the entire archive.
 
 ```bash
-# Install dependencies
-npm install
-
-# Start dev server
-npm run dev
-
-# Build for production
-npm run build
-
-# Generate pre-computed indexes (optional, for faster loads)
-# Run while dev server is running in another terminal
-node scripts/index-pdfs.mjs
+src/
+├── components/       # Premium UI components
+│   ├── PageTransition.tsx # Framer Motion route wrapper
+│   ├── PdfViewer.tsx    # Glassmorphism PDF explorer
+│   ├── ResultCard.tsx   # Depth-aware match cards
+│   └── AboutPage.tsx    # Narrative history view
+├── hooks/            # Modern React logic
+│   ├── usePdfIndex.ts   # Smart Delta Indexing engine
+│   ├── useSearch.ts     # Multi-threaded search logic
+│   └── useSearchHistory.ts # Persistent search persistence
+├── workers/          # Background compute
+│   └── search.worker.ts # High-perf Fuse.js search thread
+├── data/
+│   └── books.ts         # Central Volume Registry
+└── styles/           # Design System
+    └── index.css        # Heritage Glassmorphism tokens
 ```
 
-## Environment
+### 🧠 Core Systems
 
-The app expects PDF files in `public/pdfs/` following this naming convention:
-- `{Title}_{Year}_{Part}_{Section}_ocr.pdf`
+#### 1. Smart Delta Indexing (`usePdfIndex.ts`)
+Avoids redundant processing by comparing the Volume Registry with the local IndexedDB cache. Only new or modified PDFs are indexed using PDF.js text extraction.
 
-Example: `Whos_Who_1936_37_pt1_Preface_ocr.pdf`
+#### 2. Virtualized Feed (`App.tsx`)
+By flattening hierarchical results (Book > Page > Record) into a single virtualized list, we maintain 60FPS scrolling regardless of results count.
 
-## License
+#### 3. Memory Management
+Web workers are utilized for heavy search lifting, and PDF document proxies are cleaned up after extraction to maintain a small memory footprint during long research sessions.
 
-MIT License - Created by [Rotate Group (Pty) Ltd](https://rt8.co.za)
+## 🛠️ Getting Started
 
-## Contact
+```bash
+# 1. Install modern dependencies
+npm install
 
-- Email: ilyas@rt8.co.za
-- WhatsApp: +27 84 799 0432
+# 2. Repair vulnerabilities (Secure standard)
+npm audit fix --force
+
+# 3. Launch development environment
+npm run dev
+```
+
+### 📂 Porting New Archives
+To add new volumes, simply update `src/data/books.ts`. The **Smart Delta** engine will automatically detect and index the new files on the next user visit.
+
+```typescript
+// Example registry entry
+{
+  id: 'WhosWho_1960_Vol4',
+  title: 'Indian Who\'s Who 1960',
+  year: '1960',
+  pdfPath: '/pdfs/Vol4_1960_ocr.pdf',
+}
+```
+
+## 📜 Credits & License
+
+SALT is a collaborative effort to preserve community heritage.
+Original documents courtesy of the **UKZN Gandhi-Luthuli Documentation Centre**.
+
+**Created by [Rotate Group (Pty) Ltd](https://rt8.co.za)**
+- Lead Developer: Ilyas Shamoon
+- Design Language: Heritage Glassmorphism v2.3
+
+---
+*Dedicated to the preservation of South African Indian history.*

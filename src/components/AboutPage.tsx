@@ -1,9 +1,9 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, Quote } from 'lucide-react';
+import { ArrowLeft, BookOpen, Clock, Heart, BookMarked } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 
-export function AboutPage() {
+export const AboutPage = () => {
   const navigate = useNavigate();
 
   const goSearch = () => {
@@ -11,151 +11,97 @@ export function AboutPage() {
   };
 
   return (
-    <div className="about-page">
-      <div className="about-hero">
-        <button className="back-btn" onClick={goSearch}>
-          <ArrowLeft size={18} /> Back to Search
-        </button>
-        
-        <motion.div 
-          className="about-intro"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <h1>About SugarCane</h1>
-          <p className="about-subtitle">
-            A digital heritage search engine for South Africa's Indian community
-          </p>
-        </motion.div>
+    <div className="space-y-16 md:space-y-24 pb-24 md:pb-32 px-4 md:px-8 group">
+
+      <div className="flex justify-start">
+        <Button variant="ghost" className="text-muted-foreground hover:text-[#007749] active:scale-95 transition-transform rounded-full px-8 py-3" onClick={goSearch}>
+          <ArrowLeft size={16} className="mr-2" /> Back to Search
+        </Button>
       </div>
 
-      <div className="about-content">
-        <section className="about-section">
-          <h2>What is SugarCane?</h2>
-          <p>
-            SugarCane is a historical search engine that makes it easy to explore the 
-            lives of South Africa's Indian community through decades of biographical records. 
-            It provides fast, full-text search across multiple editions of the 
-            <em> Who's Who</em> directories spanning from 1936 to 1972.
-          </p>
-          <p>
-            These digitized records include biographies, business directories, and family 
-            histories that document the achievements, trades, and communities of Indian 
-            South Africans during a transformative period in our nation's history.
-          </p>
-        </section>
+      <header className="text-center space-y-6 md:space-y-8 flex flex-col items-center justify-center">
+        <h1 className="text-4xl md:text-7xl font-black tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+          About <span className="bg-gradient-to-r from-[#E03C31] via-[#007749] to-[#001489] bg-clip-text text-transparent italic">SALT.</span>
+        </h1>
+        <p className="text-lg md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed border-b-2 border-[#007749]/10 pb-8 md:pb-10 font-medium" style={{ fontFamily: 'var(--font-lora)' }}>
+          A digital heritage search engine for South Africa's Indian community
+        </p>
+      </header>
 
-        <section className="about-section">
-          <h2>Why We Built This</h2>
-          <p>
-            For many South Africans of Indian descent, tracing family history is a profound 
-            journey into the roots of a resilient community. These records—compiled across 
-            decades—represent the largest collection of biographical information about Indian 
-            South Africans ever assembled.
-          </p>
-          <p>
-            Traditional archival research requires physical access to rare books, often 
-            locked away in university libraries. SugarCane democratizes this access, allowing 
-            anyone with an internet connection to search, discover, and connect with their heritage.
-          </p>
-        </section>
 
-        <section className="about-section">
-          <h2>Data Sources</h2>
-          <ul className="source-list">
-            <li><strong>Who's Who (1936-37)</strong> — The earliest known edition</li>
-            <li><strong>South African Indian Who's Who (1940)</strong> — Including commercial directory</li>
-            <li><strong>South African Indian Who's Who (1960)</strong> — Mid-century comprehensive edition</li>
-            <li><strong>Southern Africa Indian Who's Who (1971-72)</strong> — The most complete edition</li>
-          </ul>
-          <p className="source-credit">
-            Original documents courtesy of the{' '}
-            <a href="https://gldc.ukzn.ac.za" target="_blank" rel="noreferrer">
-              UKZN Gandhi-Luthuli Documentation Centre
-            </a>
-          </p>
-        </section>
-
-        <section className="about-section">
-          <h2>Technology</h2>
-          <p>
-            SugarCane uses modern web technologies to deliver fast, responsive search across 
-            thousands of pages. The entire archive is indexed client-side, enabling instant 
-            results without server round-trips. PDF documents are rendered on-demand for 
-            detailed viewing.
-          </p>
-        </section>
-
-        <section className="about-section reviews-section">
-          <h2>What People Say</h2>
-          <div className="reviews-grid">
-            <div className="review-card">
-              <Quote size={20} className="quote-icon" />
-              <p className="review-text">
-                An invaluable resource for anyone researching their family history in South Africa.
-              </p>
-              <div className="review-rating">
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-              </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 py-8 lg:py-10">
+        <section className="space-y-10">
+          <h2 className="text-2xl font-black text-foreground flex items-center gap-4">
+            <div className="p-4 bg-[#007749]/5 rounded-full text-[#007749] border border-[#007749]/10">
+              <BookOpen size={28} />
             </div>
-            <div className="review-card">
-              <Quote size={20} className="quote-icon" />
-              <p className="review-text">
-                Finally, a way to access these historical records without visiting archives in person.
-              </p>
-              <div className="review-rating">
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-              </div>
-            </div>
-            <div className="review-card">
-              <Quote size={20} className="quote-icon" />
-              <p className="review-text">
-                Beautiful interface and incredibly fast search. A tribute to our community's history.
-              </p>
-              <div className="review-rating">
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-                <Star size={14} fill="#b06820" stroke="#b06820" />
-              </div>
-            </div>
+            What is SALT?
+          </h2>
+          <div className="space-y-6 text-muted-foreground leading-relaxed text-lg" style={{ fontFamily: 'var(--font-lora)' }}>
+            <p>
+              SALT is a historical search engine that makes it easy to explore the lives of South Africa's Indian community through decades of biographical records.
+            </p>
+            <p>
+              These digitized records offer a fast, full-text search across multiple editions of the <em className="text-[#001489] font-black italic">Indian Who's Who</em> directories.
+            </p>
           </div>
-          <p className="reviews-note">
-            Have you used SugarCane? We'd love your feedback.{' '}
-            <a href="https://search.google.com/search?q=SugarCane+heritage+search" target="_blank" rel="noreferrer">
-              Leave a review on Google
-            </a>
-          </p>
         </section>
 
-        <section className="about-section">
-          <h2>Contact & Credits</h2>
-          <p>
-            SugarCane is a project by{' '}
-            <a href="https://rt8.co.za" target="_blank" rel="noreferrer">
-              Rotate Group (Pty) Ltd
-            </a>
-            <br />
-            Created by <strong>Ilyas Shamoon</strong>
-          </p>
-          <p>
-            <a href="mailto:ilyas@rt8.co.za">ilyas@rt8.co.za</a>
-            <br />
-            <a href="https://wa.me/27847990432" target="_blank" rel="noreferrer">
-              WhatsApp
-            </a>
-          </p>
+        <section className="space-y-10">
+          <h2 className="text-2xl font-black text-foreground flex items-center gap-4">
+            <div className="p-4 bg-[#E03C31]/5 rounded-full text-[#E03C31] border border-[#E03C31]/10">
+              <Clock size={28} />
+            </div>
+            Why We Built This
+          </h2>
+          <div className="space-y-6 text-muted-foreground leading-relaxed text-lg" style={{ fontFamily: 'var(--font-lora)' }}>
+            <p>
+              For many South Africans of Indian descent, tracing family history is a profound journey. Traditional archival research is often locked away.
+            </p>
+            <p>
+              SALT democratizes this access, allowing anyone with an internet connection to discover and connect with their heritage.
+            </p>
+          </div>
         </section>
       </div>
+
+      {/* Data Sources Component - Straight text in a large box (Box UI) */}
+      <div className="bg-white border-2 border-border/60 p-8 md:p-20 shadow-2xl relative overflow-hidden group/box">
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#E03C31] via-[#007749] to-[#001489] opacity-80" />
+
+        <div className="space-y-10 md:space-y-14">
+          <div className="space-y-3">
+            <h2 className="text-3xl font-black text-foreground" style={{ fontFamily: 'var(--font-display)' }}>Data Sources</h2>
+            <p className="text-[#007749] uppercase tracking-[0.4em] text-[10px] font-black opacity-60">Archive Volumes currently indexed</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6 md:gap-10">
+            {[
+              { title: "Who's Who (1936-37)", desc: "The earliest known edition documenting a pioneering era." },
+              { title: "South African Indian (1940)", desc: "Including trade directories and commercial history." },
+              { title: "South African Indian (1960)", desc: "Comprehensive mid-century archival update." },
+              { title: "Southern Africa Indian (1971-72)", desc: "The final and most complete edition stored locally." }
+            ].map((item, i) => (
+              <div key={i} className="flex flex-col gap-2 py-5 border-b border-border/40 last:border-0 hover:bg-muted/5 transition-colors px-2">
+                <h3 className="font-black text-lg text-foreground flex items-center gap-3">
+                  <BookMarked size={16} className="text-[#001489]" />
+                  {item.title}
+                </h3>
+                <p className="text-muted-foreground leading-relaxed font-medium" style={{ fontFamily: 'var(--font-lora)' }}>{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-sm text-muted-foreground italic font-medium pt-6 border-t border-border/20">
+            Original documents graciously provided for research by the <strong className="text-[#001489] font-black">UKZN Gandhi-Luthuli Documentation Centre</strong>
+          </p>
+        </div>
+      </div>
+
+      <div className="text-center pt-12 md:pt-20">
+        <Heart size={32} className="mx-auto text-[#E03C31]/20 fill-[#E03C31]/5" />
+      </div>
+
     </div>
   );
-}
+};
