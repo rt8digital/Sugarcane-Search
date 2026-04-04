@@ -1,60 +1,60 @@
-import React, { useEffect, useRef, useState, useCallback, lazy, Suspense } from 'react';
-import { motion } from 'framer-motion';
-import { X, Loader2 } from 'lucide-react';
-import { SearchResult } from '../types';
-
-// Lazy load PDF.js to reduce initial bundle
-const PdfViewerContent = lazy(() => import('./PdfViewerContent'));
+import React from 'react';
+import { Viewer, Worker, SpecialZoomLevel } from '@react-pdf-viewer/core';
+import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import { X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface PdfViewerProps {
-  result: SearchResult;
+  fileUrl: string;
+  bookId: string;
+  initialPage?: number;
   onClose: () => void;
+  title: string;
 }
 
-export function PdfViewer({ result, onClose }: PdfViewerProps) {
-  return (
-    <Suspense fallback={<PdfViewerLoader onClose={onClose} />}>
-      <PdfViewerContent result={result} onClose={onClose} />
-    </Suspense>
-  );
-}
+const PdfViewer: React.FC<PdfViewerProps> = ({ fileUrl, bookId, initialPage = 1, onClose, title }) => {
+  const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
-// Loader component shown while PDF viewer loads
-function PdfViewerLoader({ onClose }: { onClose: () => void }) {
   return (
-    <motion.div
-      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
+    <AnimatePresence>
       <motion.div
-        className="w-full max-w-4xl bg-card rounded-2xl shadow-xl border border-border overflow-hidden"
-        initial={{ y: 20, opacity: 0, scale: 0.98 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        exit={{ y: 20, opacity: 0, scale: 0.98 }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="fixed inset-0 z-50 flex flex-col bg-white/80 backdrop-blur-xl"
       >
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <div className="flex items-center gap-3">
-            <Loader2 size={20} className="animate-spin text-primary" />
-            <span className="font-semibold text-foreground">Loading PDF viewer...</span>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/50 bg-white/50">
+          <div className="flex items-center gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+              <p className="text-sm text-gray-500">Page {initialPage}</p>
+            </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-muted rounded-full transition-colors"
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              className="p-2 transition-colors rounded-full hover:bg-gray-100 text-gray-500"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
-        <div className="h-[60vh] flex items-center justify-center bg-muted/30">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto" />
-            <p className="text-muted-foreground font-medium">Preparing archive document...</p>
-          </div>
+
+        <div className="flex-1 overflow-hidden">
+          <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+            <Viewer
+              fileUrl={fileUrl}
+              initialPage={initialPage - 1}
+              plugins={[defaultLayoutPluginInstance]}
+              defaultScale={SpecialZoomLevel.PageFit}
+            />
+          </Worker>
         </div>
       </motion.div>
-    </motion.div>
+    </AnimatePresence>
   );
-}
+};
+
+export default PdfViewer;

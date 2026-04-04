@@ -1,59 +1,76 @@
-import { BiographicalRecord } from '../types/schema';
+/**
+ * Parser to extract words and sentences from OCR text for search indexing.
+ */
+
+export interface ParsedPage {
+  page: number;
+  text: string;
+  words: string[];
+  sentences: Sentence[];
+}
+
+export interface Sentence {
+  text: string;
+  words: string[];
+}
 
 /**
- * Heuristic parser for extracting biographical records from OCR text.
- * Strategy: Look for capitalized names followed by a colon or a specific 
- * biographical pattern like "b. <date>".
+ * Parse OCR text from a PDF page and extract searchable words and sentences.
  */
-export function parseBiographies(text: string): BiographicalRecord[] {
-  const records: BiographicalRecord[] = [];
+export function parsePage(text: string, page: number): ParsedPage {
+  // Extract all unique words (normalized to lowercase, min 2 chars)
+  const wordSet = new Set<string>();
+  const allWords = text.toLowerCase()
+    .replace(/[^a-z0-9\s'-]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length >= 2);
   
-  // Split text into potential sections (entries often start on new lines or after certain patterns)
-  // This is a naive split by capitalization + colon as a marker for a new entry
-  const entryMarkers = text.split(/(?=[A-Z]{2,},?\s[A-Z]{2,}:)/g);
+  allWords.forEach(w => wordSet.add(w));
+
+  // Extract sentences by splitting on common sentence boundaries
+  const sentences: Sentence[] = [];
+  const rawSentences = text.split(/[.!?\n]+/);
   
-  for (let segment of entryMarkers) {
-    if (!segment.trim()) continue;
-    
-    const record: BiographicalRecord = {
-      fullName: '',
-      rawText: segment.trim()
-    };
-    
-    // 1. Extract Name (Look for "NAME, FABIAN:")
-    const nameMatch = segment.match(/^([A-Z\s,]{3,}):/);
-    if (nameMatch) {
-      record.fullName = nameMatch[1].trim();
-      segment = segment.substring(nameMatch[0].length).trim();
-    } else {
-      // Fallback: use first few words if it looks like a name
-      const words = segment.split(' ');
-      if (words[0] && words[0] === words[0].toUpperCase()) {
-         record.fullName = words.slice(0, 2).join(' ').replace(':', '');
-      }
+  for (const raw of rawSentences) {
+    const trimmed = raw.trim().replace(/\s+/g, ' ');
+    if (trimmed.length > 10) {
+      const sentWords = trimmed.toLowerCase()
+        .replace(/[^a-z0-9\s'-]/g, ' ')
+        .split(/\s+/)
+        .filter(w => w.length >= 2);
+      sentences.push({ text: trimmed, words: sentWords });
     }
-    
-    if (!record.fullName) continue;
-
-    // 2. Extract Profession (Text until the first "b." or period)
-    const profMatch = segment.match(/^([^.]+?)\.[\s]b\./i);
-    if (profMatch) {
-      record.profession = profMatch[1].trim();
-    } else {
-      const sentence = segment.split('.')[0];
-      if (sentence && sentence.length < 100) {
-        record.profession = sentence.trim();
-      }
-    }
-
-    // 3. Extract Birth Date (Look for "b. <date>")
-    const birthMatch = segment.match(/b\.\s?([\d]{1,2}[a-z\s]{0,10}[\d]{4}|[\d]{4}|[\d]{1,2}\s[a-z]{3,}\s[\d]{4})/i);
-    if (birthMatch) {
-      record.birthDate = birthMatch[1].trim();
-    }
-
-    records.push(record);
   }
+
+  return {
+    page,
+    text,
+    words: Array.from(wordSet),
+    sentences,
+  };
+}
+
+/**
+ * Get context around a matched word within the text.
+ * Returns a snippet showing the word with surrounding text.
+ */
+export function getContextForMatch(text: string, query: string, contextLength: number = 80): string {
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const index = lowerText.indexOf(lowerQuery);
   
-  return records;
+  if (index === -1) {
+    // Return first part of text if no match
+    return text.slice(0, contextLength * 2) + '...';
+  }
+
+  const start = Math.max(0, index - contextLength);
+  const end = Math.min(text.length, index + query.length + contextLength);
+  let snippet = text.slice(start, end);
+  
+  // Add ellipsis if truncated
+  if (start > 0) snippet = '...' + snippet.slice(3);
+  if (end < text.length) snippet = snippet.slice(0, -3) + '...';
+  
+  return snippet;
 }

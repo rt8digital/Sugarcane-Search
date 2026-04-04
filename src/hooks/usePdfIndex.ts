@@ -1,127 +1,70 @@
-import { useState, useEffect, useRef } from 'react';
-import * as pdfjsLib from 'pdfjs-dist/build/pdf';
-import { Book, BookIndex, PageIndex, BiographicalRecord } from '../types';
-import { getCache, setCache } from '../utils/db';
-import { parseBiographies } from '../utils/parser';
+import { useState, useEffect } from 'react';
+import { BookIndex } from '../types';
 
-const { GlobalWorkerOptions, getDocument } = pdfjsLib;
-GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs`;
+// Architecture: 
+// 1. Try GitHub media CDN first (for live updates without rebuild)
+// 2. Fall back to local /search-index.json (served from public/ during dev/build)
+// 3. When new PDFs are added: run `npm run build-index` then push public/search-index.json to GitHub
+const GITHUB_INDEX_URL = 'https://media.githubusercontent.com/media/rt8digital/Sugarcane-Search/main/public/search-index.json';
+const LOCAL_INDEX_URL = '/search-index.json';
 
-export function usePdfIndex(books: Book[]) {
+export function usePdfIndex() {
   const [indexes, setIndexes] = useState<Map<string, BookIndex>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
-  
-  // Track ongoing operations to prevent duplicates
-  const activeJobs = useRef(new Set<string>());
-  const isMounted = useRef(true);
 
   useEffect(() => {
-    isMounted.current = true;
-    return () => { isMounted.current = false; };
-  }, []);
+    let cancelled = false;
 
-  useEffect(() => {
-    if (!books.length) {
-      setLoading(false);
-      return;
-    }
+    const loadIndex = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        setProgress(0.1);
 
-    const processBooks = async () => {
-      setLoading(true);
-      
-      // Identify books that aren't indexed yet
-      const missingBooks = books.filter(b => !indexes.has(b.id) && !activeJobs.current.has(b.id));
-      
-      if (missingBooks.length === 0) {
-        setLoading(false);
-        return;
-      }
+        let data: Record<string, BookIndex> | null = null;
 
-      for (const book of missingBooks) {
-        if (!isMounted.current) break;
-        activeJobs.current.add(book.id);
-
+        // Try GitHub CDN first (latest updates)
         try {
-          // 1. Check Cache
-          const cached = await getCache<BookIndex>(book.id);
-          if (cached) {
-            if (isMounted.current) {
-              setIndexes(prev => new Map(prev).set(book.id, cached));
-            }
-            activeJobs.current.delete(book.id);
-            continue;
+          const resp = await fetch(GITHUB_INDEX_URL);
+          if (resp.ok) {
+            data = await resp.json();
           }
-
-          // 2. Fetch PDF & Index
-          const pdfResp = await fetch(book.pdfPath);
-          if (!pdfResp.ok) throw new Error(`Could not fetch PDF: ${book.pdfPath}`);
-          
-          const buffer = await pdfResp.arrayBuffer();
-          const doc = await getDocument({ data: new Uint8Array(buffer) }).promise;
-          const numPages = doc.numPages;
-          const pages: PageIndex[] = [];
-
-          for (let p = 1; p <= numPages; p++) {
-            if (!isMounted.current) break;
-            
-            const page = await doc.getPage(p);
-            const content = await page.getTextContent();
-            const text = content.items
-              .map((item: any) => item.str || '')
-              .join(' ')
-              .replace(/\s+/g, ' ')
-              .trim();
-            
-            const records: BiographicalRecord[] = parseBiographies(text);
-            pages.push({ page: p, text, records });
-            
-            // Minor progress update within book
-            if (p % 5 === 0 || p === numPages) {
-              const currentTotal = Array.from(indexes.values()).length;
-              setProgress((currentTotal + (p / numPages)) / books.length);
-            }
-          }
-
-          const bookIndex: BookIndex = {
-            bookId: book.id,
-            title: book.title,
-            totalPages: numPages,
-            indexedAt: new Date().toISOString(),
-            pages,
-          };
-
-          // 3. Persist & Update State
-          await setCache(book.id, bookIndex);
-          
-          if (isMounted.current) {
-            setIndexes(prev => new Map(prev).set(book.id, bookIndex));
-          }
-
-        } catch (err) {
-          console.error(`Error indexing ${book.id}:`, err);
-          if (isMounted.current) {
-            setError(`Failed to index ${book.title}. Heritage records may be incomplete.`);
-          }
-        } finally {
-          activeJobs.current.delete(book.id);
+        } catch {
+          // CDN unavailable
         }
-      }
 
-      if (isMounted.current) {
-        setLoading(false);
+        // Fall back to local bundled index
+        if (!data) {
+          setProgress(0.5);
+          const resp = await fetch(LOCAL_INDEX_URL);
+          if (!resp.ok) throw new Error('No search index found locally or on CDN');
+          data = await resp.json();
+        }
+
         setProgress(1);
+
+        if (!cancelled) {
+          const map = new Map<string, BookIndex>();
+          Object.values(data).forEach((idx: BookIndex) => {
+            map.set(idx.bookId, idx);
+          });
+          setIndexes(map);
+          setLoading(false);
+        }
+      } catch (err: any) {
+        console.error('Error loading search index:', err);
+        if (!cancelled) {
+          setError(err.message || 'Failed to load search index');
+          setLoading(false);
+        }
       }
     };
 
-    processBooks();
-  }, [books]); // Re-runs if BOOKS list changes
+    loadIndex();
+    return () => { cancelled = true; };
+  }, []);
 
-  return { 
-    indexes, 
-    loading: loading || activeJobs.current.size > 0, 
-    error, 
-    progress 
-  };
+  return { indexes, loading, error, progress };
 }
